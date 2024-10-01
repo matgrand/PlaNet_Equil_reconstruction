@@ -71,9 +71,7 @@ wandb/*
 !id_test.npy
 
 
-
-
-
+*.pth
 
 
 
