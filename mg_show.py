@@ -7,11 +7,11 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load(MODEL_SAVE_PATH))
     model.eval()
     ds = PlaNetDataset(SAMPLE_DS_PATH)
-    input_currs, psi = ds[0]
+    input_currs, psi = ds[100]
     psi_pred = model(input_currs.unsqueeze(0))
     psi_pred = psi_pred.detach().numpy().reshape(64, 64)
     psi = psi.detach().numpy().reshape(64, 64)
-    err = ( (psi - psi_pred) / psi ) * 100
+    err = ( (psi - psi_pred) / max(psi.max(), psi_pred.max()) ) * 100
     fig, axs = plt.subplots(1, 4, figsize=(15, 5))
     ext = [ds.rr_pix.min(), ds.rr_pix.max(), ds.zz_pix.min(), ds.zz_pix.max()]
     rr, zz = ds.rr_pix, ds.zz_pix  # radial and vertical positions of pixels
@@ -19,7 +19,7 @@ if __name__ == "__main__":
     im0 = axs[0].imshow(psi, extent=ext)
     axs[0].set_title("Actual")
     axs[0].set_aspect('equal')
-    fig.colorbar(im0, ax=axs[0])
+    fig.colorbar(im0, ax=axs[0]) 
 
     im1 = axs[1].imshow(psi_pred, extent=ext)
     axs[1].set_title("Predicted")
