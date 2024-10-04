@@ -123,8 +123,7 @@ from scipy import signal
 import scipy.ndimage
 import time
 
-import mat73
-
+import scipy.io as sio
 
 # import h5py
 # f = h5py.File(filename, 'r')
@@ -134,26 +133,28 @@ import mat73
 ### Load database 
 '''
 
-try: # Dell XPS
-    folder = os.path.join(r"C:\Users\matte\Dropbox\PhD\RESEARCH_ACTIVITY\ML\Equilibrium_ML\database_equil_ITER_FRIDA")
-    ### load probes data and fluxes
-    filename = os.path.join(folder + r'\Database_psi_rec_ConvNet_ITER_TensorFlow_v4_15000.mat'); ind_case = 15000;
-    filename = os.path.join(folder + r'/Database_psi_rec_ConvNet_ITER_TensorFlow_v4.mat'); 
-    mat = mat73.loadmat(filename)
-except:
-    try: # desktop RFX
-        folder = os.path.join(r"C:\Users\bonotto\Dropbox\PhD\RESEARCH_ACTIVITY\ML\Equilibrium_ML\database_equil_ITER_FRIDA")
-        ### load probes data and fluxes
-        filename = os.path.join(folder + r'\Database_psi_rec_ConvNet_ITER_TensorFlow_v4_15000.mat'); ind_case = 15000;
-        filename = os.path.join(folder + r'\Database_psi_rec_ConvNet_ITER_TensorFlow_v4.mat'); ind_case = 50000;
-        mat = mat73.loadmat(filename)
-    except: #Macbook Pro
-        folder = os.path.join(r"/Users/matte/Dropbox/PhD/RESEARCH_ACTIVITY/ML/Equilibrium_ML/database_equil_ITER_FRIDA")
-        ### load probes data and fluxes
-        filename = os.path.join(folder + r'/Database_psi_rec_ConvNet_ITER_TensorFlow_v4_15000.mat'); ind_case = 82278;
-        filename = os.path.join(folder + r'/Database_psi_rec_ConvNet_ITER_TensorFlow_v4.mat'); 
-        mat = mat73.loadmat(filename)        
+# try: # Dell XPS
+#     folder = os.path.join(r"C:\Users\matte\Dropbox\PhD\RESEARCH_ACTIVITY\ML\Equilibrium_ML\database_equil_ITER_FRIDA")
+#     ### load probes data and fluxes
+#     filename = os.path.join(folder + r'\Database_psi_rec_ConvNet_ITER_TensorFlow_v4_15000.mat'); ind_case = 15000;
+#     filename = os.path.join(folder + r'/Database_psi_rec_ConvNet_ITER_TensorFlow_v4.mat'); 
+#     mat = sio.loadmat(filename)
+# except:
+#     try: # desktop RFX
+#         folder = os.path.join(r"C:\Users\bonotto\Dropbox\PhD\RESEARCH_ACTIVITY\ML\Equilibrium_ML\database_equil_ITER_FRIDA")
+#         ### load probes data and fluxes
+#         filename = os.path.join(folder + r'\Database_psi_rec_ConvNet_ITER_TensorFlow_v4_15000.mat'); ind_case = 15000;
+#         filename = os.path.join(folder + r'\Database_psi_rec_ConvNet_ITER_TensorFlow_v4.mat'); ind_case = 50000;
+#         mat = sio.loadmat(filename)
+#     except: #Macbook Pro
+#         folder = os.path.join(r"/Users/matte/Dropbox/PhD/RESEARCH_ACTIVITY/ML/Equilibrium_ML/database_equil_ITER_FRIDA")
+#         ### load probes data and fluxes
+#         filename = os.path.join(folder + r'/Database_psi_rec_ConvNet_ITER_TensorFlow_v4_15000.mat'); ind_case = 82278;
+#         filename = os.path.join(folder + r'/Database_psi_rec_ConvNet_ITER_TensorFlow_v4.mat'); 
+#         mat = sio.loadmat(filename)        
       
+filename = "/Users/mg/repos/PlaNet_Equil_reconstruction/data/ITER_like_equilibrium_dataset.mat"
+mat = sio.loadmat(filename)
     
 
 for key,val in mat.items():
