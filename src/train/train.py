@@ -22,7 +22,7 @@ class Trainer():
                 self.logger.init(project = self.config['train']['logging']['wandb']['project']) #, id='bnudeqd5', # resume="must")
         if self.config['train']['lr']['scheduler']: lr = ExponentialDecay(**self.config['train']['lr']['scheduler']['init_args'])
         else: lr = self.config['train']['lr']
-        self.optimizer = tf.keras.optimizers.legacy.Adam(learning_rate = lr)
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
         self.InitCheckpointManager()
 
     def InitCheckpointManager(self):
@@ -84,8 +84,8 @@ class Trainer():
                 self.loss = self.train_step(train_ds_i)
                 if self.config['train']['logging']:
                     self.logger.log({"loss": self.loss.numpy()})
-                    self.logger.log({'lr':self.optimizer.lr((self.optimizer.iterations))})
-                loss_iterations.append(self.loss.numpy())
+                    # self.logger.log({'lr': self.optimizer.learning_rate(self.optimizer.iterations).numpy()})  
+                    loss_iterations.append(self.loss.numpy())
             self.history['loss_iter'].extend(loss_iterations)
             self.history['loss'].append(np.mean(np.asarray(loss_iterations)))
             epoch_time = time() - t_start

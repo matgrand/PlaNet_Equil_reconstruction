@@ -34,4 +34,3 @@ def calc_laplace_df_dr_ker(hr, hz):
     laplace_ker = np.array(([0, hr**2/α, 0], [hz**2/α, 1, hz**2/α], [0, hr**2/α, 0]))
     df_dr_ker = np.array(([0, 0, 0], [+1, 0, -1], [0, 0, 0]))/(2*hr*α)*(hr**2*hz**2)
     return laplace_ker, df_dr_ker
-

@@ -1,8 +1,8 @@
 import keras
 from keras.layers import Layer
-from keras import backend as K
-# import keras.src.backend.common as K
-import keras.backend as K
+# from keras import backend as K
+# # import keras.src.backend.common as K
+# # import keras.backend as K
 
 import tensorflow as tf
 from tensorflow.keras.layers import Dense, Activation, Dropout
@@ -23,7 +23,8 @@ DTYPE = 'float32'
 
 
 def swish(x, beta=1.0):
-    return x * K.sigmoid(beta * x)
+    # return x * K.sigmoid(beta * x)
+    return x * tf.sigmoid(beta * x)
 
 
 # class Swish(keras.layers.Layer):
@@ -47,14 +48,9 @@ class Swish(Layer):
         self.trainable = trainable
 
     def build(self, input_shape):
-        self.beta_factor = K.variable(
-            self.beta,
-            dtype=K.floatx(),
-            name='beta_factor'
-            )
+        self.beta_factor = tf.Variable(self.beta, dtype=tf.float32, name='beta_factor')
         if self.trainable:
-            self._trainable_weights.append(self.beta_factor)
-
+            self.trainable_weights.append(self.beta_factor)
         super(Swish, self).build(input_shape)
 
     def call(self, inputs, mask=None):

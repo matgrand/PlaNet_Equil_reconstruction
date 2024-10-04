@@ -23,7 +23,7 @@ train:
         decay_steps: 70000
         initial_learning_rate: 0.001
   Gauss_filt_dim: 3
-  is_physics_informed: False #True
+  is_physics_informed: True #True
   from_ckpt: True
   ckpt_path: ./ckpt/
   logging:
