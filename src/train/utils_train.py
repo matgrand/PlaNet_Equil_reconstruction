@@ -20,20 +20,18 @@ def fun_GSoperator_NN_conv_smooth_batch_adaptive(f,laplace_ker_ds,df_dr_ker_ds,g
     GS_ope = Lpsi - Dpsi_dr
     hr = RR_ds[:,1,2] - RR_ds[:,1,1]
     hz = ZZ_ds[:,2,1] - ZZ_ds[:,1,1]
-    alfa = -2*(hr**2 + hz**2)
+    α = -2*(hr**2 + hz**2)
     hr = tf.expand_dims(tf.expand_dims(tf.expand_dims(hr,axis=-1),axis=-1),axis=-1)
     hz = tf.expand_dims(tf.expand_dims(tf.expand_dims(hz,axis=-1),axis=-1),axis=-1)
-    alfa = tf.expand_dims(tf.expand_dims(tf.expand_dims(alfa,axis=-1),axis=-1),axis=-1)
-    GS_ope = GS_ope*alfa/(hr**2*hz**2)
+    α = tf.expand_dims(tf.expand_dims(tf.expand_dims(α,axis=-1),axis=-1),axis=-1)
+    GS_ope = GS_ope*α/(hr**2*hz**2)
     GS_ope = tf.nn.conv2d(GS_ope,gaussian_ker,strides=[1, 1, 1, 1],padding='SAME')
     GS_ope = tf.squeeze(GS_ope,axis = -1)
     return GS_ope
 
-def calc_Laplace_ker():
-    raise
+def calc_laplace_df_dr_ker(hr, hz):
+    α = -2*(hr**2 + hz**2)
+    laplace_ker = np.array(([0, hr**2/α, 0], [hz**2/α, 1, hz**2/α], [0, hr**2/α, 0]))
+    df_dr_ker = np.array(([0, 0, 0], [+1, 0, -1], [0, 0, 0]))/(2*hr*α)*(hr**2*hz**2)
+    return laplace_ker, df_dr_ker
 
-def calc_Df_ker():
-    raise
-
-def calc_Gaussian_ker():
-    raise
