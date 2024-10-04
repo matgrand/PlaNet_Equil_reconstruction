@@ -3,7 +3,6 @@
 import tensorflow as tf
 from tensorflow.keras.optimizers.schedules import ExponentialDecay
 from time import time
-# from tensorflow.keras import optimizer
 import numpy as np
 from src.train.utils_train import gauss_kernel, fun_GSoperator_NN_conv_smooth_batch_adaptive
 from src.utils import touch_dir
