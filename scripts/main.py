@@ -1,3 +1,5 @@
+# run this script with the following command: 
+# python scripts/main.py -c=config/config_train_TF.yml
 import os
 import sys
 sys.path.append(os.getcwd())
