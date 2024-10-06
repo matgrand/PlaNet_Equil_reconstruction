@@ -5,17 +5,16 @@ model:
 
 data:
   path: 
-    # train: ./data/tf_Dataset_train_NeuralOpt_64x64_10000_samples.data
-    train: ./data/tf_Dataset_train_NeuralOpt_64x64_70000_samples.data
-    test: ./data/tf_Dataset_test_NeuralOpt_64x64_16398_samples.data
-    grid: ./data/data_geo_Dataset_NeuralOpt_super_res_64x64.mat
+    train: ./data/train_ds_tf
+    eval: ./data/eval_ds_tf
+    grid: ./data/start_grid_64x64.mat
   batch_size: 512
   shuffle: true
 
 train:
   epochs: 400 #2800
   print_every_epoch: 1
-  # optimizer: 'Adam'
+  optimizer: 'Adam'
   lr: 
     scheduler:
       init_args:

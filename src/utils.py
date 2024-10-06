@@ -49,18 +49,30 @@ def get_configs(args):
         config = yaml.safe_load(f)
     return config
 
-def load_data(config):
-    train_ds = tf.data.Dataset.load(
-        config['data']['path']['train']
-        ).batch(config['data']['batch_size'],drop_remainder=True).shuffle(
-            buffer_size = 70000,
-            seed=42,
-            reshuffle_each_iteration=True
-            )
-    test_ds =  tf.data.Dataset.load(
-        config['data']['path']['test']
-        ).batch(config['data']['batch_size'],drop_remainder=True)
+# def load_data(config):
+#     train_ds = tf.data.Dataset.load(
+#         config['data']['path']['train']
+#         ).batch(config['data']['batch_size'],drop_remainder=True).shuffle(
+#             buffer_size = 70000,
+#             seed=42,
+#             reshuffle_each_iteration=True
+#             )
+#     test_ds =  tf.data.Dataset.load(
+#         config['data']['path']['test']
+#         ).batch(config['data']['batch_size'],drop_remainder=True)
     
+#     return train_ds, test_ds
+
+def load_data(config):
+    train_path = config['data']['path']['train']
+    eval_path = config['data']['path']['eval']
+    train_ds = tf.data.Dataset.load(train_path)
+    test_ds = tf.data.Dataset.load(eval_path)
+    # shuffle 
+    train_ds = train_ds.shuffle(buffer_size=len(train_ds), seed=42, reshuffle_each_iteration=True)
+    # batch
+    train_ds = train_ds.batch(config['data']['batch_size'], drop_remainder=True)
+    test_ds = test_ds.batch(config['data']['batch_size'], drop_remainder=True)
     return train_ds, test_ds
 
 def init_model(test_dl):

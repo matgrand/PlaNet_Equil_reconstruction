@@ -20,9 +20,9 @@ class Trainer():
             if self.config['train']['logging']['wandb']:
                 self.logger = wandb
                 self.logger.init(project = self.config['train']['logging']['wandb']['project']) #, id='bnudeqd5', # resume="must")
-        if self.config['train']['lr']['scheduler']: lr = ExponentialDecay(**self.config['train']['lr']['scheduler']['init_args'])
-        else: lr = self.config['train']['lr']
-        self.optimizer = tf.keras.optimizers.Adam(learning_rate=lr)
+        # if self.config['train']['lr']['scheduler']: lr = ExponentialDecay(**self.config['train']['lr']['scheduler']['init_args'])
+        # else: lr = self.config['train']['lr']
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
         self.InitCheckpointManager()
 
     def InitCheckpointManager(self):
@@ -113,20 +113,3 @@ class Trainer():
             self.model.save(filename + 'trained_model.keras') # Save model
             with open(filename + 'history.pkl','wb') as f: pickle.dump(self.history, f) # Save history
             with open(filename + 'configs.yaml','w') as f: yaml.dump(self.config, f) # Save configs
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
