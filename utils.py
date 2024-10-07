@@ -47,49 +47,38 @@ def gauss_kernel(size=3):
     elif size == 5: return np.array(([1,4,7,4,1],[4,16,26,16,4],[7,26,41,26,7],[4,16,26,16,4],[1,4,7,4,1]), dtype='float32')/273
     else: raise NotImplementedError 
 
-#calculate the Grad-Shafranov operator
-# pytorch version
+#calculate the Grad-Shafranov operator pytorch
 import torch
 import torch.nn.functional as F
-def calc_gso(ψ:arr, rr:arr, zz:arr):
-    assert ψ.shape == (64,64), f"ψ.shape = {ψ.shape}"
-    # assert lap_ker.shape == (3,3), f"lap_ker.shape = {lap_ker.shape}"
-    # assert dr_ker.shape == (3,3), f"dr_ker.shape = {dr_ker.shape}"
-    # assert gauss_ker.shape == (3,3), f"gauss_ker.shape = {gauss_ker.shape}"
-    assert rr.shape == (64,64), f"rr.shape = {rr.shape}"
-    assert zz.shape == (64,64), f"zz.shape = {zz.shape}"
-    # ψ, lap_ker, dr_ker, gauss_ker, rr, zz = map(torch.tensor, (ψ, lap_ker, dr_ker, gauss_ker, rr, zz))
-    ψ, rr, zz = map(torch.tensor, (ψ, rr, zz))
-    Ψ = Ψ
-    Δr, Δz = rr[1,2]-rr[1,1], zz[2,1]-zz[1,1] 
-    α = -2*(Δr**2 + Δz**2)  # constant
-    β = (Δr**2 * Δz**2) / α # constant
-    lap_ker = torch.tensor([[0, Δr**2/α, 0], [Δz**2/α, 1, Δz**2/α], [0, Δr**2/α, 0]])
-    dr_ker = torch.tensor([[0,0,0],[+1,0,-1],[0,0,0]]) #* (Δr**2 * Δz**2) / (2*Δr*α)
-    conv_lap = F.conv2d(ψ.view(1,1,64,64), lap_ker.view(1,1,3,3), padding=1)
-    conv_dr = F.conv2d(ψ.view(1,1,64,64), dr_ker.view(1,1,3,3), padding=1)
-    ΔΨ = (conv_lap - conv_dr/rr.view(1,1,64,64)) / β # grad-shafranov operator
-    return (ΔΨ.view(64,64)).numpy()
+def Ϛ(x, ker): return F.pad(F.conv2d(x, ker, padding=0), (1,1,1,1), mode='replicate') # convolve with ker
 
-# tensorflow version
-import tensorflow as tf
-def fun_GSoperator_NN_conv_smooth_batch_adaptive(ψ, lap_ker, dr_ker, gauss_ker, rr, zz):
-    ψ = tf.transpose(ψ,[3,1,2,0])
-    lap_psi = tf.nn.depthwise_conv2d(ψ,tf.transpose(tf.expand_dims(lap_ker, axis=-1),[1,2,0,3]),strides=[1, 1, 1, 1],padding='VALID')
-    lap_psi = tf.transpose(lap_psi,[3,1,2,0]) # no need to be transposed becaused Laplacian filter is left/rigth symmetric
-    dpsi_dr = tf.nn.depthwise_conv2d(ψ,tf.transpose(tf.expand_dims(dr_ker, axis=-1), [1,2,0,3]),strides=[1, 1, 1, 1],padding='VALID')
-    dpsi_dr = - dpsi_dr # necessary because nn.depthwise_conv2d filters has to be transposed to perform real convolution (here [+h 0 -h] -> [-h 0 +h])
-    dpsi_dr = tf.transpose(dpsi_dr,[3,1,2,0])
-    RR_in = tf.expand_dims(rr[:,1:-1,1:-1],axis=-1)
-    dpsi_dr = tf.math.divide(dpsi_dr,RR_in)
-    GS_ope = lap_psi - dpsi_dr
-    hr = rr[:,1,2] - rr[:,1,1]
-    hz = zz[:,2,1] - zz[:,1,1]
-    α = -2*(hr**2 + hz**2)
-    hr = tf.expand_dims(tf.expand_dims(tf.expand_dims(hr,axis=-1),axis=-1),axis=-1)
-    hz = tf.expand_dims(tf.expand_dims(tf.expand_dims(hz,axis=-1),axis=-1),axis=-1)
-    α = tf.expand_dims(tf.expand_dims(tf.expand_dims(α,axis=-1),axis=-1),axis=-1)
-    GS_ope = GS_ope*α/(hr**2*hz**2)
-    GS_ope = tf.nn.conv2d(GS_ope,gauss_ker,strides=[1, 1, 1, 1],padding='SAME')
-    GS_ope = tf.squeeze(GS_ope,axis = -1)
-    return GS_ope
+def laplace_ker(Δr, Δz, α): # [[0, Δr**2/α, 0], [Δz**2/α, 1, Δz**2/α], [0, Δr**2/α, 0]]
+    kr, kz = Δr**2/α, Δz**2/α
+    lap_ker = torch.zeros(len(Δr),1, 3, 3, dtype=torch.float32)
+    lap_ker[:,0,0,1], lap_ker[:,0,1,0], lap_ker[:,0,1,2], lap_ker[:,0,2,1], lap_ker[:,0,1,1] = kr, kz, kz, kz, 1
+    return lap_ker
+
+def laplace_ker(Δr, Δz, α): return torch.tensor([[0, Δr**2/α, 0], [Δz**2/α, 1, Δz**2/α], [0, Δr**2/α, 0]], dtype=torch.float32).view(1,1,3,3)
+
+def dr_ker(Δr, Δz, α): # [[0,0,0],[-1,0,+1],[0,0,0]] * (Δr**2 * Δz**2) / (2*Δr*α)
+    dr_ker = torch.zeros(len(Δr),1, 3, 3, dtype=torch.float32)
+    dr_ker[:,0,1,0], dr_ker[:,0,1,2] = +1, -1
+    return dr_ker * (Δr**2 * Δz**2) / (2*Δr*α)
+
+def dr_ker(Δr, Δz, α): return torch.tensor([[0,0,0],[-1,0,+1],[0,0,0]], dtype=torch.float32).view(1,1,3,3) * (Δr**2 * Δz**2) / (2*Δr*α)
+
+def calc_gso(ψ, rr, zz):
+    assert ψ.shape == rr.shape == zz.shape == (64,64), f"ψ.shape = {ψ.shape}, rr.shape = {rr.shape}, zz.shape = {zz.shape}"
+    Ψ, rr, zz = torch.tensor(ψ).view(1,1,64,64), torch.tensor(rr).view(1,1,64,64), torch.tensor(zz).view(1,1,64,64)
+    return calc_gso_batch(Ψ, rr, zz).numpy()[0,0]
+
+def calc_gso_batch(Ψ, rr, zz):
+    assert Ψ[0].shape == rr[0].shape == zz[0].shape == (1,64,64), f"Ψ.shape = {Ψ.shape}, rr.shape = {rr.shape}, zz.shape = {zz.shape}"
+    Δr, Δz = rr[:,0,1,2]-rr[:,0,1,1], zz[:,0,2,1]-zz[:,0,1,1] 
+    α = -2*(Δr**2 + Δz**2)  # constant
+    print(f"Δr = {Δr}, Δz = {Δz}, α = {α}")
+    print(laplace_ker(Δr, Δz, α))
+    print(dr_ker(Δr, Δz, α))
+    β = (Δr**2 * Δz**2) / α # constant
+    ΔΨ = (1/β) * (Ϛ(Ψ, laplace_ker(Δr, Δz, α)) - Ϛ(Ψ, dr_ker(Δr, Δz, α))/rr) # grad-shafranov operator
+    return ΔΨ
