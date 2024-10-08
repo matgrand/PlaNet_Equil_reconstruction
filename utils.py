@@ -50,22 +50,27 @@ def gauss_kernel(size=3):
 #calculate the Grad-Shafranov operator pytorch
 import torch
 import torch.nn.functional as F
-def Ϛ(x, ker): return F.pad(F.conv2d(x, ker, padding=0), (1,1,1,1), mode='replicate') # convolve with ker
+def Ϛ(x, ker): 
+    assert x.ndim == 4, f"x.ndim = {x.ndim}"
+    assert x.shape[1] == 1, f"x.shape = {x.shape}"
+    assert ker.ndim == 4, f"ker.ndim = {ker.ndim}"
+    assert ker.shape[1] == 1, f"ker.shape = {ker.shape}"
+    b = x.shape[0] # batch size
+    x = F.conv2d(x.view(1, b, x.shape[2], x.shape[3]), ker, padding=0, groups=b)
+    x = F.pad(x, (1,1,1,1), mode='replicate')
+    return x.view(b, 1, x.shape[2], x.shape[3])
 
 def laplace_ker(Δr, Δz, α): # [[0, Δr**2/α, 0], [Δz**2/α, 1, Δz**2/α], [0, Δr**2/α, 0]]
     kr, kz = Δr**2/α, Δz**2/α
-    lap_ker = torch.zeros(len(Δr),1, 3, 3, dtype=torch.float32)
-    lap_ker[:,0,0,1], lap_ker[:,0,1,0], lap_ker[:,0,1,2], lap_ker[:,0,2,1], lap_ker[:,0,1,1] = kr, kz, kz, kz, 1
-    return lap_ker
-
-def laplace_ker(Δr, Δz, α): return torch.tensor([[0, Δr**2/α, 0], [Δz**2/α, 1, Δz**2/α], [0, Δr**2/α, 0]], dtype=torch.float32).view(1,1,3,3)
-
+    ker = torch.zeros(len(Δr),1, 3, 3, dtype=torch.float32)
+    ker[:,0,0,1], ker[:,0,1,0], ker[:,0,1,2], ker[:,0,2,1], ker[:,0,1,1] = kr, kz, kz, kr, 1
+    return ker
+   
 def dr_ker(Δr, Δz, α): # [[0,0,0],[-1,0,+1],[0,0,0]] * (Δr**2 * Δz**2) / (2*Δr*α)
-    dr_ker = torch.zeros(len(Δr),1, 3, 3, dtype=torch.float32)
-    dr_ker[:,0,1,0], dr_ker[:,0,1,2] = +1, -1
-    return dr_ker * (Δr**2 * Δz**2) / (2*Δr*α)
-
-def dr_ker(Δr, Δz, α): return torch.tensor([[0,0,0],[-1,0,+1],[0,0,0]], dtype=torch.float32).view(1,1,3,3) * (Δr**2 * Δz**2) / (2*Δr*α)
+    ker = torch.zeros(len(Δr),1, 3, 3, dtype=torch.float32)
+    k = (Δr**2 * Δz**2) / (2*Δr*α)
+    ker[:,0,1,0], ker[:,0,1,2] = -k, k
+    return ker
 
 def calc_gso(ψ, rr, zz):
     assert ψ.shape == rr.shape == zz.shape == (64,64), f"ψ.shape = {ψ.shape}, rr.shape = {rr.shape}, zz.shape = {zz.shape}"
@@ -75,10 +80,7 @@ def calc_gso(ψ, rr, zz):
 def calc_gso_batch(Ψ, rr, zz):
     assert Ψ[0].shape == rr[0].shape == zz[0].shape == (1,64,64), f"Ψ.shape = {Ψ.shape}, rr.shape = {rr.shape}, zz.shape = {zz.shape}"
     Δr, Δz = rr[:,0,1,2]-rr[:,0,1,1], zz[:,0,2,1]-zz[:,0,1,1] 
-    α = -2*(Δr**2 + Δz**2)  # constant
-    print(f"Δr = {Δr}, Δz = {Δz}, α = {α}")
-    print(laplace_ker(Δr, Δz, α))
-    print(dr_ker(Δr, Δz, α))
-    β = (Δr**2 * Δz**2) / α # constant
-    ΔΨ = (1/β) * (Ϛ(Ψ, laplace_ker(Δr, Δz, α)) - Ϛ(Ψ, dr_ker(Δr, Δz, α))/rr) # grad-shafranov operator
+    α = (-2*(Δr**2 + Δz**2))
+    β = ((Δr**2 * Δz**2) / α)
+    ΔΨ = (1/β.view(-1,1,1,1)) * (Ϛ(Ψ, laplace_ker(Δr, Δz, α)) - Ϛ(Ψ, dr_ker(Δr, Δz, α))/rr) # grad-shafranov operator
     return ΔΨ
