@@ -9,4 +9,4 @@
 #SBATCH --time=10:00:00
 #SBATCH --gres=gpu:a40:1
 cd $HOME/repos/PlaNet_Equil_reconstruction
-srun jupyter nbconvert mg_train.ipynb.ipynb --to python && python mg_train.ipynb.py && rm -rf mg_train.ipynb.py
+srun jupyter nbconvert mg_train.ipynb --to python && python mg_train.py && rm -rf mg_train.py
