@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=train
-#SBATCH --error=output.%j.txt
-#SBATCH --output=output.%j.txt
+#SBATCH --error=jobs/output.%j.txt
+#SBATCH --output=jobs/output.%j.txt
 #SBATCH --partition=allgroups
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
