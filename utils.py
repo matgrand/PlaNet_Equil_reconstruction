@@ -60,14 +60,14 @@ def Ϛ(x, ker):
     x = F.pad(x, (1,1,1,1), mode='replicate')
     return x.view(b, 1, x.shape[2], x.shape[3])
 
-def laplace_ker(Δr, Δz, α): # [[0, Δr**2/α, 0], [Δz**2/α, 1, Δz**2/α], [0, Δr**2/α, 0]]
+def laplace_ker(Δr, Δz, α, dev=torch.device("cpu")): # [[0, Δr**2/α, 0], [Δz**2/α, 1, Δz**2/α], [0, Δr**2/α, 0]]
     kr, kz = Δr**2/α, Δz**2/α
-    ker = torch.zeros(len(Δr),1, 3, 3, dtype=torch.float32)
+    ker = torch.zeros(len(Δr),1, 3, 3, dtype=torch.float32, device=dev)
     ker[:,0,0,1], ker[:,0,1,0], ker[:,0,1,2], ker[:,0,2,1], ker[:,0,1,1] = kr, kz, kz, kr, 1
     return ker
    
-def dr_ker(Δr, Δz, α): # [[0,0,0],[-1,0,+1],[0,0,0]] * (Δr**2 * Δz**2) / (2*Δr*α)
-    ker = torch.zeros(len(Δr),1, 3, 3, dtype=torch.float32)
+def dr_ker(Δr, Δz, α, dev=torch.device("cpu")): # [[0,0,0],[-1,0,+1],[0,0,0]] * (Δr**2 * Δz**2) / (2*Δr*α)
+    ker = torch.zeros(len(Δr),1, 3, 3, dtype=torch.float32, device=dev)
     k = (Δr**2 * Δz**2) / (2*Δr*α)
     ker[:,0,1,0], ker[:,0,1,2] = -k, k
     return ker
@@ -77,10 +77,10 @@ def calc_gso(ψ, rr, zz):
     Ψ, rr, zz = torch.tensor(ψ).view(1,1,64,64), torch.tensor(rr).view(1,1,64,64), torch.tensor(zz).view(1,1,64,64)
     return calc_gso_batch(Ψ, rr, zz).numpy()[0,0]
 
-def calc_gso_batch(Ψ, rr, zz):
+def calc_gso_batch(Ψ, rr, zz, dev=torch.device('cpu')):
     assert Ψ[0].shape == rr[0].shape == zz[0].shape == (1,64,64), f"Ψ.shape = {Ψ.shape}, rr.shape = {rr.shape}, zz.shape = {zz.shape}"
     Δr, Δz = rr[:,0,1,2]-rr[:,0,1,1], zz[:,0,2,1]-zz[:,0,1,1] 
     α = (-2*(Δr**2 + Δz**2))
     β = ((Δr**2 * Δz**2) / α)
-    ΔΨ = (1/β.view(-1,1,1,1)) * (Ϛ(Ψ, laplace_ker(Δr, Δz, α)) - Ϛ(Ψ, dr_ker(Δr, Δz, α))/rr) # grad-shafranov operator
+    ΔΨ = (1/β.view(-1,1,1,1)) * (Ϛ(Ψ, laplace_ker(Δr, Δz, α, dev)) - Ϛ(Ψ, dr_ker(Δr, Δz, α, dev))/rr) # grad-shafranov operator
     return ΔΨ
