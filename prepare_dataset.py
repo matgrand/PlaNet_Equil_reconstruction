@@ -23,6 +23,7 @@ from utils import resample_on_new_subgrid, interp_fun, get_box_from_grid, sample
 
 
 # hyperparameters
+HAS_SCREEN = False # whether to plot the data or save it
 DTYPE = 'float32'
 DATA_DIR = "data" # where the data is stored
 full_ds_mat_path = join(DATA_DIR, 'ITER_like_equilibrium_dataset.mat')
@@ -36,11 +37,12 @@ sample_ds_mat_path = join(DATA_DIR, 'ITER_like_equilibrium_dataset_sample.mat')
 
 # # download datasets from gdrive, # uncomment if you want to download the dataset
 # import gdown
+# if not exists(DATA_DIR): os.makedirs(DATA_DIR)
 # gdown.download(id="1-5KP7_OYIvDD_QXvIr5sDihVxZx1qJCN", output=full_ds_mat_path, quiet=False)
 # gdown.download(id="1Gn_OrMzxPRkTk-i77--HiWmWZyd8i8ue", output=sample_ds_mat_path, quiet=False)
 
 
-# In[4]:
+# In[ ]:
 
 
 # remove all files and dirs in the data directory except for full_ds_mat_path and sample_ds_mat_path
@@ -73,7 +75,7 @@ DB_separatrix_200_test_ConvNet = mat_ds['DB_separatrix_200_test_ConvNet'].astype
 DB_Jpla_pixel_test_ConvNet = mat_ds['DB_Jpla_pixel_test_ConvNet'].astype(DTYPE)
 
 
-# In[6]:
+# In[ ]:
 
 
 # define the dataset input and output
@@ -92,7 +94,7 @@ nr,nz = RRf.shape
 io.savemat(join(DATA_DIR, f'start_grid_{nr}x{nz}.mat'),{'RRf':RRf,'ZZf':ZZf})   
 
 
-# In[7]:
+# In[ ]:
 
 
 # plot dataset example
@@ -132,11 +134,12 @@ for i in range(0,1):
     axs[3].axis('equal')
     axs[3].plot(DB_separatrix_200_test_ConvNet[ind_plot,:,0], DB_separatrix_200_test_ConvNet[ind_plot,:,1], c='g')
     axs[3].set_axis_off()
+plt.show() if HAS_SCREEN else plt.savefig(join(DATA_DIR, 'dataset_example.png'))
 
 
 # ## Interpolation on subgrids
 
-# In[8]:
+# In[ ]:
 
 
 # test interpolation
@@ -171,7 +174,7 @@ plt.colorbar(im2,ax=ax[2])
 plt.colorbar(im3,ax=ax[3])
 plt.colorbar(im4,ax=ax[4])
 
-plt.show()
+plt.show() if HAS_SCREEN else plt.savefig(join(DATA_DIR, 'interpolation_example.png'))
 
 
 # ## Create Dataset
@@ -186,7 +189,7 @@ FULL_SUBGRID_SPLIT = 0.3 # percentage of the full grid
 N_GRID = 64 # number of points in the grid
 
 
-# In[10]:
+# In[ ]:
 
 
 # dataset splitting (N_TOP = original dataset size)
@@ -211,7 +214,7 @@ idxs_ef = np.random.choice(orig_idxs_eval, NEF, replace=False) # evaluation full
 idxs_es = np.random.choice(orig_idxs_eval, NES, replace=False) # can overlap with idxs_ef
 
 
-# In[11]:
+# In[ ]:
 
 
 # create arrays to store the dataset
@@ -294,7 +297,7 @@ for i in range(len(X_eval[0])):
     laplace_ker_e[i,:,:], df_dr_ker_e[i,:,:] = calc_laplace_df_dr_ker(hrs_e[i], hzs_e[i])
 
 
-# In[13]:
+# In[ ]:
 
 
 # check the dataset
@@ -332,12 +335,12 @@ for i, (it, ie)  in enumerate(zip(idxs_train, idxs_eval)):
     ax[i,5].plot(box0[:,0], box0[:,1])
     ax[i,5].set_aspect('equal')
     plt.colorbar(a2,ax=ax[i,5])
-plt.show()
+plt.show() if HAS_SCREEN else plt.savefig(join(DATA_DIR, 'dataset_check.png'))
 
 
 # ## Calculating Grad-Shafranov Operator with convolutions
 
-# In[14]:
+# In[ ]:
 
 
 from utils import calc_gso, calc_gso_batch
@@ -394,7 +397,7 @@ for i in range(n_plots):
     plt.colorbar(im2,ax=ax[2])
     plt.colorbar(im3,ax=ax[3])
     plt.colorbar(im4,ax=ax[4])
-    plt.show()
+    plt.show() if HAS_SCREEN else plt.savefig(join(DATA_DIR, f'gso_check_{i}.png'))
 
 
 # ## Export dataset Tensorflow
@@ -412,7 +415,7 @@ tf.data.Dataset.save(train_ds_tf, join(DATA_DIR, 'train_ds_tf'))
 tf.data.Dataset.save(eval_ds_tf, join(DATA_DIR, 'eval_ds_tf'))
 
 
-# In[16]:
+# In[ ]:
 
 
 # test loading the datasets
