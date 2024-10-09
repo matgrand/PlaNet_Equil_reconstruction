@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=test
-#SBATCH --error=jobs/%j/output.txt
-#SBATCH --output=jobs/%j/output.txt
+#SBATCH --error=jobs/output%j.txt
+#SBATCH --output=jobs/output%j.txt
 #SBATCH --partition=allgroups
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
