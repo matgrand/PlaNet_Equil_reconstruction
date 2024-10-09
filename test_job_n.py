@@ -4,14 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
-    # parse arguments
-    parser = argparse.ArgumentParser(description='Test dynamics with the cluster')
-    parser.add_argument('-n', '--number', type=str, required=True, help='Number of the experiment')
-    parser.add_argument('-c', '--config', type=str, required=True, help='Config file path')
-    args = parser.parse_args()
-    exp_number = args.number
-    config_path = args.config
-
+    # assign to exp_number the value of $SLURM_JOB_ID
+    exp_number = os.environ["SLURM_JOB_ID"]
+    
     #create a directory inside mg_data/#exp_number
     os.makedirs(f"mg_data/{exp_number}", exist_ok=True)
 
@@ -23,4 +18,3 @@ if __name__ == "__main__":
     
 
     print(f"Experiment number: {exp_number}")
-    print(f"Config file path: {config_path}")
