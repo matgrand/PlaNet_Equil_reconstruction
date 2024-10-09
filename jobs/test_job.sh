@@ -8,5 +8,6 @@
 #SBATCH --mem=64G
 #SBATCH --time=00:01:00
 cd $HOME/repos/PlaNet_Equil_reconstruction
+mkdir -p jobs/%j
 echo "running job %j"
 srun python test_job_n.py -c=config/config_train_mg.yml -n=%j
