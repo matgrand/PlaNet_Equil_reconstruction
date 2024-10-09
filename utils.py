@@ -42,11 +42,6 @@ def calc_laplace_df_dr_ker(hr, hz):
     dr_ker = np.array(([0, 0, 0], [+1, 0, -1], [0, 0, 0]))/(2*hr*α)*(hr**2*hz**2)
     return laplace_ker, dr_ker
 
-def gauss_kernel(size=3):
-    if size == 3: return np.array(([1,2,1], [2,4,2], [1,2,1]), dtype='float32')/16
-    elif size == 5: return np.array(([1,4,7,4,1],[4,16,26,16,4],[7,26,41,26,7],[4,16,26,16,4],[1,4,7,4,1]), dtype='float32')/273
-    else: raise NotImplementedError 
-
 #calculate the Grad-Shafranov operator pytorch
 import torch
 import torch.nn.functional as F
@@ -72,6 +67,13 @@ def dr_ker(Δr, Δz, α, dev=torch.device("cpu")): # [[0,0,0],[-1,0,+1],[0,0,0]]
     ker[:,0,1,0], ker[:,0,1,2] = -k, k
     return ker
 
+def gauss_ker(n=1, dev=torch.device("cpu")):
+    ker = torch.zeros(n,1, 3, 3, dtype=torch.float32, device=dev)
+    ker[:,0,0,0], ker[:,0,0,1], ker[:,0,0,2] = 1/16, 2/16, 1/16
+    ker[:,0,1,0], ker[:,0,1,1], ker[:,0,1,2] = 2/16, 4/16, 2/16
+    ker[:,0,2,0], ker[:,0,2,1], ker[:,0,2,2] = 1/16, 2/16, 1/16
+    return ker
+
 def calc_gso(ψ, rr, zz):
     assert ψ.shape == rr.shape == zz.shape == (64,64), f"ψ.shape = {ψ.shape}, rr.shape = {rr.shape}, zz.shape = {zz.shape}"
     Ψ, rr, zz = torch.tensor(ψ).view(1,1,64,64), torch.tensor(rr).view(1,1,64,64), torch.tensor(zz).view(1,1,64,64)
@@ -83,4 +85,5 @@ def calc_gso_batch(Ψ, rr, zz, dev=torch.device('cpu')):
     α = (-2*(Δr**2 + Δz**2))
     β = ((Δr**2 * Δz**2) / α)
     ΔΨ = (1/β.view(-1,1,1,1)) * (Ϛ(Ψ, laplace_ker(Δr, Δz, α, dev)) - Ϛ(Ψ, dr_ker(Δr, Δz, α, dev))/rr) # grad-shafranov operator
+    ΔΨ = Ϛ(ΔΨ, gauss_ker(len(α), dev)) # apply gauss kernel
     return ΔΨ
