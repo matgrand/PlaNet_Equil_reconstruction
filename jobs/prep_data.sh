@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=prep_data
+#SBATCH --job-name=prep 
 #SBATCH --error=jobs/%j.txt
 #SBATCH --output=jobs/%j.txt
 #SBATCH --partition=allgroups
