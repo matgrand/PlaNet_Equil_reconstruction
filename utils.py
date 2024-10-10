@@ -46,14 +46,10 @@ def calc_laplace_df_dr_ker(hr, hz):
 import torch
 import torch.nn.functional as F
 def Ϛ(x, ker): 
-    assert x.ndim == 4, f"x.ndim = {x.ndim}"
-    assert x.shape[1] == 1, f"x.shape = {x.shape}"
-    assert ker.ndim == 4, f"ker.ndim = {ker.ndim}"
-    assert ker.shape[1] == 1, f"ker.shape = {ker.shape}"
-    b = x.shape[0] # batch size
-    x = F.conv2d(x.view(1, b, x.shape[2], x.shape[3]), ker, padding=0, groups=b)
-    x = F.pad(x, (1,1,1,1), mode='replicate')
-    return x.view(b, 1, x.shape[2], x.shape[3])
+    assert x.ndim == 4 and x.shape[1] == 1, f"x.ndim = {x.ndim}, x.shape = {x.shape}"
+    assert ker.ndim == 4 and ker.shape[1] == 1, f"ker.ndim = {ker.ndim}, ker.shape = {ker.shape}"
+    if ker.shape[0] > 1: x = x.view(1,-1,64,64) # if the kernel is not the same for all samples
+    return F.pad(F.conv2d(x, ker, groups=ker.shape[0]), (1,1,1,1), mode='replicate').view(-1,1,64,64)
 
 def laplace_ker(Δr, Δz, α, dev=torch.device("cpu")): # [[0, Δr**2/α, 0], [Δz**2/α, 1, Δz**2/α], [0, Δr**2/α, 0]]
     kr, kz = Δr**2/α, Δz**2/α
@@ -67,12 +63,8 @@ def dr_ker(Δr, Δz, α, dev=torch.device("cpu")): # [[0,0,0],[-1,0,+1],[0,0,0]]
     ker[:,0,1,0], ker[:,0,1,2] = -k, k
     return ker
 
-def gauss_ker(n=1, dev=torch.device("cpu")):
-    ker = torch.zeros(n,1, 3, 3, dtype=torch.float32, device=dev)
-    ker[:,0,0,0], ker[:,0,0,1], ker[:,0,0,2] = 1/16, 2/16, 1/16
-    ker[:,0,1,0], ker[:,0,1,1], ker[:,0,1,2] = 2/16, 4/16, 2/16
-    ker[:,0,2,0], ker[:,0,2,1], ker[:,0,2,2] = 1/16, 2/16, 1/16
-    return ker
+def gauss_ker(dev=torch.device("cpu")):
+    return torch.tensor([[1,2,1],[2,4,2],[1,2,1]], dtype=torch.float32, device=dev).view(1,1,3,3) / 16
 
 def calc_gso(ψ, rr, zz):
     assert ψ.shape == rr.shape == zz.shape == (64,64), f"ψ.shape = {ψ.shape}, rr.shape = {rr.shape}, zz.shape = {zz.shape}"
@@ -85,5 +77,5 @@ def calc_gso_batch(Ψ, rr, zz, dev=torch.device('cpu')):
     α = (-2*(Δr**2 + Δz**2))
     β = ((Δr**2 * Δz**2) / α)
     ΔΨ = (1/β.view(-1,1,1,1)) * (Ϛ(Ψ, laplace_ker(Δr, Δz, α, dev)) - Ϛ(Ψ, dr_ker(Δr, Δz, α, dev))/rr) # grad-shafranov operator
-    ΔΨ = Ϛ(ΔΨ, gauss_ker(len(α), dev)) # apply gauss kernel
+    ΔΨ = Ϛ(ΔΨ, gauss_ker(dev)) # apply gauss kernel
     return ΔΨ
