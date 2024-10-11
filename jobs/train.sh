@@ -10,4 +10,4 @@
 #SBATCH --gres=gpu:a40:1
 cd $HOME/repos/PlaNet_Equil_reconstruction
 echo "running job $SLURM_JOB_ID"
-srun git pull && jupyter nbconvert mg_train.ipynb --to python && python mg_train.py && rm -rf mg_train.py
+srun jupyter nbconvert mg_train.ipynb --to python && python mg_train.py && rm -rf mg_train.py
