@@ -80,5 +80,5 @@ data/id_train.npy
 
 mg_data/*.png
 mg_data/local/*.png
-
+mg_data/local/*.npy
 
