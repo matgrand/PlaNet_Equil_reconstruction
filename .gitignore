@@ -79,6 +79,6 @@ data/id_test.npy
 data/id_train.npy
 
 mg_data/*.png
-mg_data/local/*.png
-mg_data/local/*.npy
-
+mg_data/*/*.png
+mg_data/*/*.npy
+mg_data/*/imgs/*.png
