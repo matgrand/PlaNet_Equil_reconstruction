@@ -70,8 +70,6 @@ wandb/*
 !id_train.npy
 !id_test.npy
 
-
-*.pth
 *.data
 *.keras
 
@@ -83,3 +81,4 @@ mg_data/*/*.png
 mg_data/*/*.npy
 mg_data/*/imgs/*.png
 mg_data/*/*.py
+mg_data/*/*.pth
