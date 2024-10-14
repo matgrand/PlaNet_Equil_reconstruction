@@ -14,3 +14,5 @@ for _ in range(23*60*2):
     #print everything in the last file
     with open(dir + "/" + last_file) as f:
         print(f.read())
+    #sleep for 30 seconds
+    sleep(30)
