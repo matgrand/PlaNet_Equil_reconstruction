@@ -67,7 +67,7 @@ def calc_gso(ψ, rr, zz):
     Ψ, rr, zz = torch.tensor(ψ).view(1,1,64,64), torch.tensor(rr).view(1,1,64,64), torch.tensor(zz).view(1,1,64,64)
     return calc_gso_batch(Ψ, rr, zz).numpy()[0,0]
 
-def Ϛ(x, ker): 
+def Ϛ(x, ker): # convolve x with ker
     assert x.ndim == 4 and x.shape[1] == 1, f"x.ndim = {x.ndim}, x.shape = {x.shape}"
     assert ker.ndim == 4 and ker.shape[1] == 1, f"ker.ndim = {ker.ndim}, ker.shape = {ker.shape}"
     if ker.shape[0] > 1: x = x.view(1,-1,64,64) # if the kernel is not the same for all samples
