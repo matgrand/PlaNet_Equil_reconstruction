@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=train
+#SBATCH --job-name=t2rtx
 #SBATCH --error=jobs/%j.txt
 #SBATCH --output=jobs/%j.txt
 #SBATCH --partition=allgroups
