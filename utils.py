@@ -1,9 +1,8 @@
 # utils functions
 import numpy as np
-from numpy import ndarray as arr
 from scipy.interpolate import RegularGridInterpolator
 # INTERP_METHOD = 'linear' # fast, but less accurate
-INTERP_METHOD = 'quintic' # fast, but less accurate
+INTERP_METHOD = 'quintic' # slowest, but most accurate
 
 def sample_random_subgrid(rrG, zzG, nr=64, nz=64):
     rm, rM, zm, zM = rrG.min(), rrG.max(), zzG.min(), zzG.max()
@@ -45,12 +44,6 @@ def calc_laplace_df_dr_ker(hr, hz):
 #calculate the Grad-Shafranov operator pytorch
 import torch
 import torch.nn.functional as F
-def Ϛ(x, ker): 
-    assert x.ndim == 4 and x.shape[1] == 1, f"x.ndim = {x.ndim}, x.shape = {x.shape}"
-    assert ker.ndim == 4 and ker.shape[1] == 1, f"ker.ndim = {ker.ndim}, ker.shape = {ker.shape}"
-    if ker.shape[0] > 1: x = x.view(1,-1,64,64) # if the kernel is not the same for all samples
-    p = ker.shape[2]//2 # padding size
-    return F.pad(F.conv2d(x, ker, groups=ker.shape[0]), (p,p,p,p), mode='replicate').view(-1,1,64,64)
 
 def laplace_ker(Δr, Δz, α, dev=torch.device("cpu")): # [[0, Δr**2/α, 0], [Δz**2/α, 1, Δz**2/α], [0, Δr**2/α, 0]]
     kr, kz = Δr**2/α, Δz**2/α
@@ -73,6 +66,13 @@ def calc_gso(ψ, rr, zz):
     assert ψ.shape == rr.shape == zz.shape == (64,64), f"ψ.shape = {ψ.shape}, rr.shape = {rr.shape}, zz.shape = {zz.shape}"
     Ψ, rr, zz = torch.tensor(ψ).view(1,1,64,64), torch.tensor(rr).view(1,1,64,64), torch.tensor(zz).view(1,1,64,64)
     return calc_gso_batch(Ψ, rr, zz).numpy()[0,0]
+
+def Ϛ(x, ker): 
+    assert x.ndim == 4 and x.shape[1] == 1, f"x.ndim = {x.ndim}, x.shape = {x.shape}"
+    assert ker.ndim == 4 and ker.shape[1] == 1, f"ker.ndim = {ker.ndim}, ker.shape = {ker.shape}"
+    if ker.shape[0] > 1: x = x.view(1,-1,64,64) # if the kernel is not the same for all samples
+    p = ker.shape[2]//2 # padding size
+    return F.pad(F.conv2d(x, ker, groups=ker.shape[0]), (p,p,p,p), mode='replicate').view(-1,1,64,64)
 
 def calc_gso_batch(Ψ, rr, zz, dev=torch.device('cpu')):
     assert Ψ[0].shape == rr[0].shape == zz[0].shape == (1,64,64), f"Ψ.shape = {Ψ.shape}, rr.shape = {rr.shape}, zz.shape = {zz.shape}"
