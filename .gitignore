@@ -82,3 +82,7 @@ mg_data/*/*.npy
 mg_data/*/imgs/*.png
 mg_data/*/*.py
 mg_data/*/*.pth
+
+
+# random
+stanford_cars/*
