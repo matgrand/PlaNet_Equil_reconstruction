@@ -1,6 +1,6 @@
 # PlaNet: reconstruction of plasma equilibrium and separatrix using convolutional physics-informed neural operator
 
-fork from [original repo](https://github.com/matteobonotto/PlaNet_Equil_reconstruction)
+fork from [matteobonotto/PlaNet_Equil_reconstruction](https://github.com/matteobonotto/PlaNet_Equil_reconstruction)
 
 Source code of [this paper](https://www.sciencedirect.com/science/article/abs/pii/S0920379624000474).
 
