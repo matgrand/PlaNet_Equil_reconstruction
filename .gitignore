@@ -86,3 +86,4 @@ mg_data/*/*.pth
 
 # random
 stanford_cars/*
+mg_data_deicluster/*
